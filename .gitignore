@@ -1,3 +1,4 @@
 coreloop/
 __pycache__/
 *.pyc
+sim_results.png
