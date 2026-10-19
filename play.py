@@ -104,7 +104,7 @@ def describe(g, a):
     if a == "cast_shallow":
         return f"Cast in the shallows  {risk}"
     if a == "cast_deep":
-        return f"Cast in deep water  [grey62](further walk, better fish, more Näkki)[/]"
+        return f"Cast in deep water  [grey62](same shore, better fish, more Näkki)[/]"
     if a == "deposit":
         n = len(g.haul) + g.has_fat_pike
         odds = f", [magenta]{g.bonus_chance:.0%} double-token gamble[/]" if g.bonus_chance else ""

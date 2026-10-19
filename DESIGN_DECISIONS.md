@@ -11,7 +11,8 @@ G (fish farm, shelved). Rule names are those used in `config.py`.
 1. **Actions per round:** fish, deposit, story (incl. boss), Seita, shop.
 2. **Time rule:** only outdoor time raises hunger: walking out, casting, story/boss chunks,
    Näkki encounters (`NAKKI_ENCOUNTER_TIME`), and the walk back to the cabin to deposit
-   (`WALK_TIME`, plus `DEEP_EXTRA_WALK` from deep water). Once in the cabin, deposit, Seita
+   (`WALK_TIME`). Shallow and deep water are cast from the same shoreline, so switching
+   between them costs no extra time (decided 2026-10-19). Once in the cabin, deposit, Seita
    and shop cost no time. Deciding what to do costs no time either.
    The cabin is not a hiding place, because nothing progresses there.
 3. **Wrath is decoupled from hunger.** Wrath's ONLY effect is Näkki's chance to bite on a
@@ -72,7 +73,7 @@ Config: `GOOD_ENDING_MAX_WRATH = 30`; the old `GOOD_ENDING_AVG_HUNGER` is remove
 `play.py` marks the target on the wrath bar.
 
 ### E. Prices (rescaled 2026-10-15 to the real fish table, still to tune)
-Real income is ~10–17 tokens per outdoor minute (5–15 tokens per fish).
+Real income is ~10–22 tokens per outdoor minute (5–15 tokens per fish).
 - Iron: 15 tokens (about one trip)
 - Emergency boarding (`BOARDING_COST`): 30 (stings more than iron, so pre-buying iron is smart)
 - One-time gear: haul bucket 50, Murmuring Bait 60, slumberhook 50
@@ -82,7 +83,7 @@ Real income is ~10–17 tokens per outdoor minute (5–15 tokens per fish).
 The real game's curve (every 15 s: `log10(1 + 2h + 0.01) * 0.6 * (1 + wrath/50)`) actually
 ACCELERATES with hunger and still multiplies by wrath, so above ~20% hunger it outruns
 fishing. The sim is **linear** with no wrath link while balancing. Fishing feeds the
-village at ~0.30/min (shallow) / ~0.35/min (deep), so the hunger rate must stay below that;
+village at ~0.30/min (shallow) / ~0.45/min (deep), so the hunger rate must stay below that;
 current value 0.20/min. Revisit a curve shape as a later polish pass.
 
 ### G. Fish farm: shelved
@@ -94,15 +95,18 @@ implemented. It may come back if the restraint-based good ending tests well.
 ## Still open (marked `# OPEN` in `config.py`)
 - Hunger rate (0.20/min now, sensible range ~0.15–0.25).
 - Shop prices, item effects and `BOARDING_COST`.
-- Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-15):
+- Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
 
   | Strategy   | Good | Bad | Caught |
   |------------|-----:|----:|-------:|
-  | Appeaser   | 89%  | 1%  | 10%    |
-  | Aggressive | 31%  | 47% | 22%    |
-  | Cautious   | 8%   | 85% | 6%     |
+  | Appeaser   | 92%  | 0%  | 8%     |
+  | Aggressive | 44%  | 35% | 21%    |
+  | Cautious   | 9%   | 84% | 6%     |
 
   The strategies are not yet equally viable.
+- Deep vs shallow: with no extra walk, deep water is faster per fish (22.5 s vs 24.1 s),
+  pays more (22 vs 15 tokens/min) and feeds more (0.45 vs 0.30 hunger/min). Its only
+  downside is ×`DEEP_NAKKI_FACTOR` Näkki risk. Shallow may need a reason to exist.
 - After collapse: shop with banked tokens? Sim default `SHOP_OPEN_AFTER_COLLAPSE = True`;
   Seita stays closed (wrath frozen).
 - Measure in the real game: pike fight time (`CATCH_TIME_OVERRIDE`), walk times, haul capacity.

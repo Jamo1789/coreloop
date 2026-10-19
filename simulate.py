@@ -142,7 +142,7 @@ def economy():
         p = {f: w / W for f, w in weights.items()}
         base = {f: C.CATCH_TIME_OVERRIDE.get(
             f, C.CATCH_TIME_BASE + C.CATCH_TIME_PER_DIFFICULTY * C.FISH[f][2]) for f in p}
-        walk = 2 * (C.WALK_TIME + (C.DEEP_EXTRA_WALK if pool == "deep" else 0))
+        walk = 2 * C.WALK_TIME
         secs = sum(p[f] * base[f] for f in p) + walk / C.HAUL_CAPACITY
         tok = sum(p[f] * C.FISH[f][0] for f in p)
         food = sum(p[f] * C.FISH[f][1] for f in p)

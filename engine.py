@@ -34,7 +34,7 @@ class Game:
 
         self.time = 0.0                 # total game seconds
         self.outdoor_time = 0.0
-        self.location = "cabin"         # cabin | shallow | deep
+        self.location = "cabin"         # cabin | shore
         self.hunger = float(C.HUNGER_START)
         self.wrath = 0.0
 
@@ -165,21 +165,18 @@ class Game:
         return self.log[start:]
 
     # --- outdoor ------------------------------------------------------
-    def _go_to(self, place):
-        """Walk to a fishing spot (or story area = shallow shore)."""
-        if self.location == place:
+    def _go_to_shore(self):
+        """Walk to the shore. Shallow and deep casts and the story all start there."""
+        if self.location == "shore":
             return
-        if self.location == "cabin" and self._trip_start is None:
+        if self._trip_start is None:
             self._trip_start = self.time
             self._trip_fish = 0
-        walk = C.WALK_TIME
-        if "deep" in (place, self.location):
-            walk += C.DEEP_EXTRA_WALK
-        self.location = place
-        self._pass_outdoor(walk)
+        self.location = "shore"
+        self._pass_outdoor(C.WALK_TIME)
 
     def _cast(self, pool):
-        self._go_to(pool)
+        self._go_to_shore()
         if self.ended:
             return
         if self.rng.random() < self.nakki_chance(pool):
@@ -195,7 +192,7 @@ class Game:
         self._say(f"Caught {fish} ({pool}). Haul {len(self.haul)}/{self.haul_capacity}.")
 
     def _story(self):
-        self._go_to("shallow")
+        self._go_to_shore()
         if self.ended:
             return
         if self.rng.random() < self.nakki_chance() * C.STORY_NAKKI_FACTOR:
@@ -242,8 +239,7 @@ class Game:
     # --- free on time -------------------------------------------------
     def _deposit(self):
         if self.location != "cabin":
-            walk = C.WALK_TIME + (C.DEEP_EXTRA_WALK if self.location == "deep" else 0)
-            self._pass_outdoor(walk)
+            self._pass_outdoor(C.WALK_TIME)
             if self.ended:
                 return
             self.location = "cabin"

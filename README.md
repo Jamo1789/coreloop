@@ -18,8 +18,9 @@ folder; this is an abstract model used to tune numbers before changing the game 
 - **Story:** 4 outdoor stages (logs 1–3, final), measured in seconds. Stage 2 is a long
   fat-pike boss fight.
 - **Time rule:** outdoor seconds raise hunger: walking out, casting, story chunks, Näkki
-  encounters, and the walk back to the cabin to deposit. Once in the cabin, deposit, Seita
-  and shop take no time.
+  encounters, and the walk back to the cabin to deposit. Shallow and deep are cast from
+  the same shore, so switching costs no time. Once in the cabin, deposit, Seita and shop
+  take no time.
 - Hunger 100% = village collapse (no tokens, wrath frozen, bad ending locked).
 - No iron vs Näkki: pay `BOARDING_COST` tokens to survive, else game over.
 - Good ending: story done, never collapsed, final wrath <= `GOOD_ENDING_MAX_WRATH`.

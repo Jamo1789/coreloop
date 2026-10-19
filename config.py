@@ -55,8 +55,7 @@ FISH_POOLS = {
 # ---------------------------------------------------------------
 # TIME COSTS  (calibrated against 5 measured runs: ~59 s for ~2.8 fish)
 # ---------------------------------------------------------------
-WALK_TIME = 6                    # cabin <-> shore, each way           # PLACEHOLDER
-DEEP_EXTRA_WALK = 10             # deep spot is further away           # PLACEHOLDER
+WALK_TIME = 6                    # cabin <-> shore, each way. Shallow and deep are cast from the same shore. # PLACEHOLDER
 CATCH_TIME_BASE = 8              # seconds per catch ...
 CATCH_TIME_PER_DIFFICULTY = 6    # ... plus this x fish difficulty
 CATCH_TIME_OVERRIDE = {"pike": 40}   # pike fight w/o accessories        # OPEN, measure
