@@ -14,10 +14,12 @@ folder; this is an abstract model used to tune numbers before changing the game 
 - **Deposit gamble:** above a hunger threshold, a deposit has a chance (rising with hunger)
   to pay bonus tokens. The cost is that hunger stays high, near starvation.
 - **Seita stone:** sacrifice fish (or the Fat Pike from the boss) to lower wrath.
-- **Shop:** spend tokens on iron, haul bucket, Murmuring Bait, slumberhook (barred windows removed).
+- **Shop:** spend tokens on iron and the haul bucket (barred windows removed).
+- **Story items:** Murmuring Bait and the slumberhook are not sold. They are fetched on
+  optional outdoor errands that cost time (and so hunger and Näkki risk) instead of tokens.
 - **Story:** 4 outdoor stages (logs 1–3, final), measured in seconds. Stage 2 is a long
   fat-pike boss fight.
-- **Time rule:** outdoor seconds raise hunger: walking out, casting, story chunks, Näkki
+- **Time rule:** outdoor seconds raise hunger: walking out, casting, story chunks, errands, Näkki
   encounters, and the walk back to the cabin to deposit. Shallow and deep are cast from
   the same shore, so switching costs no time. Once in the cabin, deposit, Seita and shop
   take no time.

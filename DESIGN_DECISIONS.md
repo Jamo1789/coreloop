@@ -76,8 +76,9 @@ Config: `GOOD_ENDING_MAX_WRATH = 30`; the old `GOOD_ENDING_AVG_HUNGER` is remove
 Real income is ~10–22 tokens per outdoor minute (5–15 tokens per fish).
 - Iron: 15 tokens (about one trip)
 - Emergency boarding (`BOARDING_COST`): 30 (stings more than iron, so pre-buying iron is smart)
-- One-time gear: haul bucket 50, Murmuring Bait 60, slumberhook 50
-- A run earns ~200–260 tokens -> iron plus 2–3 pieces of gear.
+- One-time gear: haul bucket 50
+- A run earns ~200–260 tokens -> iron plus the haul bucket.
+  (Murmuring Bait and slumberhook left the shop on 2026-10-31, see H.)
 
 ### F. Hunger curve: keep linear for now
 The real game's curve (every 15 s: `log10(1 + 2h + 0.01) * 0.6 * (1 + wrath/50)`) actually
@@ -85,6 +86,14 @@ ACCELERATES with hunger and still multiplies by wrath, so above ~20% hunger it o
 fishing. The sim is **linear** with no wrath link while balancing. Fishing feeds the
 village at ~0.30/min (shallow) / ~0.45/min (deep), so the hunger rate must stay below that;
 current value 0.20/min. Revisit a curve shape as a later polish pass.
+
+### H. Murmuring Bait and slumberhook are story items (2026-10-31)
+In the real game they are not in the shop. They are part of the story: each is an optional
+outdoor errand (`STORY_ITEMS` in config) that costs time instead of tokens. The errand passes
+outdoor time (hunger rises) and has the same Näkki chance as a story chunk.
+- Murmuring Bait: available from the start, 45 s.
+- Slumberhook: available after Log 1, i.e. before the fat pike boss, 45 s.
+Engine action: `errand:<item>`. Errand lengths and unlock points are `# OPEN`.
 
 ### G. Fish farm: shelved
 A shop-built fish pool that feeds the village without touching the lake. Not
@@ -95,6 +104,7 @@ implemented. It may come back if the restraint-based good ending tests well.
 ## Still open (marked `# OPEN` in `config.py`)
 - Hunger rate (0.20/min now, sensible range ~0.15–0.25).
 - Shop prices, item effects and `BOARDING_COST`.
+- Story-item errand lengths and unlock stages (`STORY_ITEMS`).
 - Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
 
   | Strategy   | Good | Bad | Caught |
@@ -109,4 +119,5 @@ implemented. It may come back if the restraint-based good ending tests well.
   downside is ×`DEEP_NAKKI_FACTOR` Näkki risk. Shallow may need a reason to exist.
 - After collapse: shop with banked tokens? Sim default `SHOP_OPEN_AFTER_COLLAPSE = True`;
   Seita stays closed (wrath frozen).
-- Measure in the real game: pike fight time (`CATCH_TIME_OVERRIDE`), walk times, haul capacity.
+- Measure in the real game: pike fight time (`CATCH_TIME_OVERRIDE`), haul capacity.
+  (Walk time measured 2026-10-31: 6–7 s cabin ↔ shore, sim uses 6.5.)

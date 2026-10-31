@@ -26,15 +26,15 @@ STRATEGIES = {
     # fishes deep, holds the haul, gambles at high hunger, keeps little iron
     "aggressive": dict(pool="deep", deposit_hunger=0.85, iron_target=1,
                        seita_wrath=60, token_reserve=0, story_hunger=0.5,
-                       gear=["haul_bucket", "murmuring_bait", "slumberhook"]),
+                       gear=["haul_bucket"], errands=["murmuring_bait", "slumberhook"]),
     # shallow, deposits early, stocks iron and keeps money for boarding
     "cautious":   dict(pool="shallow", deposit_hunger=0.35, iron_target=2,
                        seita_wrath=40, token_reserve=C.BOARDING_COST, story_hunger=0.25,
-                       gear=["slumberhook", "haul_bucket"]),
+                       gear=["haul_bucket"], errands=["slumberhook"]),
     # keeps wrath low with constant Seita sacrifices, aims for the good ending
     "appeaser":   dict(pool="shallow", deposit_hunger=0.45, iron_target=1,
                        seita_wrath=15, token_reserve=C.BOARDING_COST, story_hunger=0.3,
-                       gear=["slumberhook"]),
+                       gear=[], errands=["slumberhook"]),
 }
 
 
@@ -70,8 +70,12 @@ def decide(game, s):
             if (f"shop:{item}" in acts
                     and game.tokens - price(item) >= s["token_reserve"]):
                 return f"shop:{item}"
-    if not game.story_done and game.hunger < s["story_hunger"] and not game.haul:
-        return "story"
+    if game.hunger < s["story_hunger"] and not game.haul:
+        for item in s["errands"]:
+            if f"errand:{item}" in acts:
+                return f"errand:{item}"
+        if not game.story_done:
+            return "story"
     if cast in acts:
         return cast
     return "deposit" if "deposit" in acts else acts[0]
@@ -124,7 +128,7 @@ def summarize(name, games):
           f" boardings {mean([g.boardings for g in games]):.2f}")
     print(f"Wrath at end: {mean([g.wrath for g in games]):.0f} avg")
     print(f"Gambles:      {gam_w + gam_l} taken, {gam_w / max(1, gam_w + gam_l):.0%} won")
-    print("Gear bought:  " + ", ".join(f"{k} {v / n:.0%}" for k, v in bought.most_common()))
+    print("Gear owned:   " + ", ".join(f"{k} {v / n:.0%}" for k, v in bought.most_common()))
     return ends
 
 

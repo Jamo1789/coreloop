@@ -55,7 +55,7 @@ FISH_POOLS = {
 # ---------------------------------------------------------------
 # TIME COSTS  (calibrated against 5 measured runs: ~59 s for ~2.8 fish)
 # ---------------------------------------------------------------
-WALK_TIME = 6                    # cabin <-> shore, each way. Shallow and deep are cast from the same shore. # PLACEHOLDER
+WALK_TIME = 6.5                  # cabin <-> shore, each way (measured 6-7 s, 2026-10-31). Shallow and deep share the shore.
 CATCH_TIME_BASE = 8              # seconds per catch ...
 CATCH_TIME_PER_DIFFICULTY = 6    # ... plus this x fish difficulty
 CATCH_TIME_OVERRIDE = {"pike": 40}   # pike fight w/o accessories        # OPEN, measure
@@ -105,10 +105,18 @@ SEITA_WRATH_FAT_PIKE = 40        # offering the boss fish (Fat Pike)
 SHOP = {
     "iron":           {"price": 15, "effect": "+1 iron"},
     "haul_bucket":    {"price": 50, "effect": "+2 haul capacity", "once": True},
-    "murmuring_bait": {"price": 60, "effect": "catches 25% faster", "once": True},
-    "slumberhook":    {"price": 50, "effect": "pike & boss fights 50% faster", "once": True},
 }
 HAUL_BUCKET_BONUS = 2
+
+# ---------------------------------------------------------------
+# STORY ITEMS  (not sold - found on an optional outdoor errand, costs time)
+# "unlock" = story stage index from which the errand is available.
+# OPEN: errand lengths and unlock points.
+# ---------------------------------------------------------------
+STORY_ITEMS = {
+    "murmuring_bait": {"time": 45, "unlock": 0, "effect": "catches 25% faster"},          # PLACEHOLDER
+    "slumberhook":    {"time": 45, "unlock": 1, "effect": "pike & boss fights 50% faster"}, # PLACEHOLDER
+}
 MURMURING_BAIT_FACTOR = 0.75
 SLUMBERHOOK_FACTOR = 0.5
 

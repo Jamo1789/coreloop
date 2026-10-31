@@ -116,6 +116,11 @@ def describe(g, a):
         return f"Seita: sacrifice cheapest fish  [grey62](-{C.SEITA_WRATH_PER_FISH} wrath)[/]"
     if a == "seita_fatpike":
         return f"Seita: offer the Fat Pike  [grey62](-{C.SEITA_WRATH_FAT_PIKE} wrath)[/]"
+    if a.startswith("errand:"):
+        item = a.split(":", 1)[1]
+        info = C.STORY_ITEMS[item]
+        return (f"Errand: find the {item.replace('_', ' ')}  [cyan]{info['time']}s outdoors[/]"
+                f"  [grey62]({info['effect']})[/]")
     if a.startswith("shop:"):
         item = a.split(":", 1)[1]
         info = C.SHOP[item]
@@ -144,6 +149,7 @@ def render(g, actions):
 HELP = f"""[bold]How it works[/]
 • Outdoor time (walking, casting, story) raises hunger by {C.HUNGER_PER_SECOND * 60:.2f} per minute.
   The cabin pauses hunger. Shop and Seita take no time.
+• Murmuring Bait and the slumberhook are not sold: fetch them on story errands (outdoor time).
 • Deposit feeds the village and pays tokens, but each fish adds +{C.WRATH_PER_FISH_DEPOSITED} wrath.
 • Wrath only raises Näkki's chance to bite. Iron banishes her. No iron: pay {C.BOARDING_COST}
   tokens to board the windows and survive. No tokens: game over.
@@ -181,7 +187,7 @@ def main():
             ("Fish deposited / sacrificed", f"{s['fish_deposited']} / {s['fish_sacrificed']}"),
             ("Gambles won / lost", f"{s['bonuses_won']} / {s['bonuses_lost']}"),
             ("Näkki encounters", f"{s['nakki_encounters']} (iron {s['iron_used']}, boarded {s['boardings']})"),
-            ("Bought", ", ".join(s["owned"]) or "-")]
+            ("Gear", ", ".join(s["owned"]) or "-")]
     for k, v in rows:
         t.add_row(k, v)
     console.print(t)

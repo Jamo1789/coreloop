@@ -7,13 +7,14 @@ Game engine: state + rules. No UI, no player logic.
     game.ended / game.end_reason / game.snapshot()
 
 Time is in seconds. Only OUTDOOR time raises hunger:
-walking, casting, story, Näkki encounters. Deposit (after walking back),
+walking, casting, story, errands, Näkki encounters. Deposit (after walking back),
 Seita and shop take no time.
 
 Actions:
     cast_shallow / cast_deep   one catch attempt (walks there first if needed)
     deposit                    walk back to the cabin, deposit the whole haul
     story                      one chunk of the current story stage
+    errand:<item>              fetch a story item (murmuring bait, slumberhook)
     seita                      sacrifice the cheapest fish in the haul
     seita_fatpike              offer the fat pike from the boss
     shop:<item>                buy an item
@@ -133,6 +134,9 @@ class Game:
             acts.append("deposit")
         if not self.story_done:
             acts.append("story")
+        for item, info in C.STORY_ITEMS.items():
+            if item not in self.owned and self.stage >= info["unlock"]:
+                acts.append(f"errand:{item}")
         if not self.collapsed and self.wrath > 0:
             if self.haul:
                 acts.append("seita")
@@ -155,6 +159,8 @@ class Game:
             self._deposit()
         elif action == "story":
             self._story()
+        elif action.startswith("errand:"):
+            self._errand(action.split(":", 1)[1])
         elif action == "seita":
             self._seita()
         elif action == "seita_fatpike":
@@ -215,6 +221,20 @@ class Game:
         self.stage_progress = 0.0
         if self.story_done:
             self._finish()
+
+    def _errand(self, item):
+        """Optional story errand: costs outdoor time instead of tokens."""
+        self._go_to_shore()
+        if self.ended:
+            return
+        if self.rng.random() < self.nakki_chance() * C.STORY_NAKKI_FACTOR:
+            self._nakki()
+            return
+        self._pass_outdoor(C.STORY_ITEMS[item]["time"])
+        if self.ended:
+            return
+        self.owned.add(item)
+        self._say(f"Errand done: you found the {item.replace('_', ' ')}.")
 
     def _nakki(self):
         self.nakki_encounters += 1
