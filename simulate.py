@@ -25,16 +25,16 @@ from engine import Game, lerp
 STRATEGIES = {
     # fishes deep, holds the haul, gambles at high hunger, keeps little iron
     "aggressive": dict(pool="deep", deposit_hunger=0.85, iron_target=1,
-                       seita_wrath=60, token_reserve=0, story_hunger=0.5,
-                       gear=["haul_bucket"], errands=["murmuring_bait", "slumberhook"]),
-    # shallow, deposits early, stocks iron and keeps money for boarding
+                       seita_wrath=60, story_hunger=0.5,
+                       errands=["murmuring_bait", "slumberhook"]),
+    # shallow, deposits early, stocks iron
     "cautious":   dict(pool="shallow", deposit_hunger=0.35, iron_target=2,
-                       seita_wrath=40, token_reserve=C.BOARDING_COST, story_hunger=0.25,
-                       gear=["haul_bucket"], errands=["slumberhook"]),
+                       seita_wrath=40, story_hunger=0.25,
+                       errands=["slumberhook"]),
     # keeps wrath low with constant Seita sacrifices, aims for the good ending
     "appeaser":   dict(pool="shallow", deposit_hunger=0.45, iron_target=1,
-                       seita_wrath=15, token_reserve=C.BOARDING_COST, story_hunger=0.3,
-                       gear=[], errands=["slumberhook"]),
+                       seita_wrath=15, story_hunger=0.3,
+                       errands=["slumberhook"]),
 }
 
 
@@ -47,7 +47,6 @@ def decide(game, s):
     """What the strategy *wants* to do this step."""
     acts = game.available_actions()
     cast = f"cast_{s['pool']}"
-    price = lambda item: C.SHOP[item]["price"]
 
     if game.collapsed:                                   # nothing to gain from fishing
         if game.iron < s["iron_target"] and "shop:iron" in acts:
@@ -66,10 +65,6 @@ def decide(game, s):
     if game.location == "cabin":                         # shopping happens at the cabin
         if game.iron < s["iron_target"] and "shop:iron" in acts:
             return "shop:iron"
-        for item in s["gear"]:
-            if (f"shop:{item}" in acts
-                    and game.tokens - price(item) >= s["token_reserve"]):
-                return f"shop:{item}"
     if game.hunger < s["story_hunger"] and not game.haul:
         for item in s["errands"]:
             if f"errand:{item}" in acts:

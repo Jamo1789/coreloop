@@ -99,14 +99,12 @@ SEITA_WRATH_PER_FISH = 8
 SEITA_WRATH_FAT_PIKE = 40        # offering the boss fish (Fat Pike)
 
 # ---------------------------------------------------------------
-# SHOP  (free on time, costs tokens). Barred windows removed (decision C).
+# SHOP  (free on time, costs tokens). Barred windows (decision C) and haul bucket (decision I) removed.
 # OPEN: prices; item effects are placeholders - map them to the real accessories.
 # ---------------------------------------------------------------
 SHOP = {
     "iron":           {"price": 15, "effect": "+1 iron"},
-    "haul_bucket":    {"price": 50, "effect": "+2 haul capacity", "once": True},
 }
-HAUL_BUCKET_BONUS = 2
 
 # ---------------------------------------------------------------
 # STORY ITEMS  (not sold - found on an optional outdoor errand, costs time)

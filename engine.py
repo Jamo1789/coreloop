@@ -144,7 +144,7 @@ class Game:
                 acts.append("seita_fatpike")
         if self.shop_open():
             for item, info in C.SHOP.items():
-                if self.tokens >= info["price"] and not (info.get("once") and item in self.owned):
+                if self.tokens >= info["price"]:
                     acts.append(f"shop:{item}")
         return acts
 
@@ -306,12 +306,8 @@ class Game:
 
     def _buy(self, item):
         self.tokens -= C.SHOP[item]["price"]
-        if C.SHOP[item].get("once"):
-            self.owned.add(item)
         if item == "iron":
             self.iron += 1
-        elif item == "haul_bucket":
-            self.haul_capacity += C.HAUL_BUCKET_BONUS
         self._say(f"Bought {item}. Tokens left: {self.tokens}.")
 
     # ------------------------------------------------------------------

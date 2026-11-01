@@ -76,9 +76,9 @@ Config: `GOOD_ENDING_MAX_WRATH = 30`; the old `GOOD_ENDING_AVG_HUNGER` is remove
 Real income is ~10–22 tokens per outdoor minute (5–15 tokens per fish).
 - Iron: 15 tokens (about one trip)
 - Emergency boarding (`BOARDING_COST`): 30 (stings more than iron, so pre-buying iron is smart)
-- One-time gear: haul bucket 50
-- A run earns ~200–260 tokens -> iron plus the haul bucket.
-  (Murmuring Bait and slumberhook left the shop on 2026-10-31, see H.)
+- A run earns ~160–200 tokens. Iron is now the only shop item.
+  (Murmuring Bait and slumberhook left the shop on 2026-10-31, see H; haul bucket removed
+  2026-11-01, see I.)
 
 ### F. Hunger curve: keep linear for now
 The real game's curve (every 15 s: `log10(1 + 2h + 0.01) * 0.6 * (1 + wrath/50)`) actually
@@ -95,6 +95,18 @@ outdoor time (hunger rises) and has the same Näkki chance as a story chunk.
 - Slumberhook: available after Log 1, i.e. before the fat pike boss, 45 s.
 Engine action: `errand:<item>`. Errand lengths and unlock points are `# OPEN`.
 
+### I. Haul bucket removed (2026-11-01)
+The bucket (+2 haul capacity, 50 tokens) never paid off. Hunger, not capacity, ends a trip:
+players head home after ~3 fish. With the measured 6.5 s walk it saved ~1.7 s per fish, and
+it cost three iron's worth of tokens. Sim, good endings without → with bucket: aggressive
+69% → 54%, cautious 20% → 19%, appeaser 98% → 96%. Longer walks only made it useful at
+~40 s, where nobody wins.
+Tried and rejected: bucket needed to carry the Fat Pike home (else Seita only). It made the
+bucket *worse* (aggressive 85% without vs 69% with), because −40 wrath at the Seita always
+beats depositing the pike: wrath decides the ending. Raising hunger to 0.25–0.35/min did not
+change that; above 0.25 the village collapses regardless.
+Consequence: tokens now only buy iron and pay for boarding. Watch for token surplus.
+
 ### G. Fish farm: shelved
 A shop-built fish pool that feeds the village without touching the lake. Not
 implemented. It may come back if the restraint-based good ending tests well.
@@ -103,7 +115,7 @@ implemented. It may come back if the restraint-based good ending tests well.
 
 ## Still open (marked `# OPEN` in `config.py`)
 - Hunger rate (0.20/min now, sensible range ~0.15–0.25).
-- Shop prices, item effects and `BOARDING_COST`.
+- Shop prices and `BOARDING_COST`. With iron the only purchase, tokens may pile up.
 - Story-item errand lengths and unlock stages (`STORY_ITEMS`).
 - Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
 

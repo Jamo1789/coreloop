@@ -14,7 +14,7 @@ folder; this is an abstract model used to tune numbers before changing the game 
 - **Deposit gamble:** above a hunger threshold, a deposit has a chance (rising with hunger)
   to pay bonus tokens. The cost is that hunger stays high, near starvation.
 - **Seita stone:** sacrifice fish (or the Fat Pike from the boss) to lower wrath.
-- **Shop:** spend tokens on iron and the haul bucket (barred windows removed).
+- **Shop:** spend tokens on iron (barred windows and haul bucket removed).
 - **Story items:** Murmuring Bait and the slumberhook are not sold. They are fetched on
   optional outdoor errands that cost time (and so hunger and Näkki risk) instead of tokens.
 - **Story:** 4 outdoor stages (logs 1–3, final), measured in seconds. Stage 2 is a long
