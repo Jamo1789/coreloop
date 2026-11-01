@@ -19,7 +19,7 @@ RANDOM_SEED = None       # int for repeatable runs
 # Only rises while the player is OUTDOORS. Paused in the cabin.
 # ---------------------------------------------------------------
 HUNGER_START = 0.0
-HUNGER_PER_SECOND = 0.20 / 60    # OPEN: 0.20/min -> 0% to 100% in 5 min outdoors (break-even ~0.30)
+HUNGER_PER_SECOND = 0.25 / 60    # OPEN: 0.25/min -> 0% to 100% in 4 min outdoors (break-even ~0.30)
 
 # At hunger 1.0 the village COLLAPSES (decision A):
 #   - deposits give no tokens and no longer lower hunger

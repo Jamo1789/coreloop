@@ -85,7 +85,8 @@ The real game's curve (every 15 s: `log10(1 + 2h + 0.01) * 0.6 * (1 + wrath/50)`
 ACCELERATES with hunger and still multiplies by wrath, so above ~20% hunger it outruns
 fishing. The sim is **linear** with no wrath link while balancing. Fishing feeds the
 village at ~0.30/min (shallow) / ~0.45/min (deep), so the hunger rate must stay below that;
-current value 0.20/min. Revisit a curve shape as a later polish pass.
+current value 0.25/min (raised from 0.20 on 2026-11-01, see below). Revisit a curve shape
+as a later polish pass.
 
 ### H. Murmuring Bait and slumberhook are story items (2026-10-31)
 In the real game they are not in the shop. They are part of the story: each is an optional
@@ -114,7 +115,10 @@ implemented. It may come back if the restraint-based good ending tests well.
 ---
 
 ## Still open (marked `# OPEN` in `config.py`)
-- Hunger rate (0.20/min now, sensible range ~0.15–0.25).
+- Hunger rate: 0.25/min since 2026-11-01. At 0.20 hunger never threatened anyone (0% collapse,
+  peak hunger 51–64%, so the 70% deposit gamble barely triggered). At 0.25 peak hunger reaches
+  ~75% and collapse is rare; at 0.28 collapse hits ~25% of cautious/appeaser runs.
+  Sensible range ~0.24–0.26.
 - Shop prices and `BOARDING_COST`. With iron the only purchase, tokens may pile up.
 - Story-item errand lengths and unlock stages (`STORY_ITEMS`).
 - Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
