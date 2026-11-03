@@ -120,6 +120,19 @@ beats depositing the pike: wrath decides the ending. Raising hunger to 0.25–0.
 change that; above 0.25 the village collapses regardless.
 Consequence: tokens now only buy iron and pay for boarding. Watch for token surplus.
 
+### J. Shallow = food, deep = money (2026-11-03)
+In the game's fish table every fish gives ~0.02 hunger per token, so deep fish (bigger) won
+on tokens AND food and shallow had no reason to exist. The sim's table is now rearranged
+(old game values are listed in `config.py`):
+- Shallow: food fish (perch 4/.14, bream 4/.16, small fish 2/.08) → ~12 tokens, 0.39 hunger/min.
+- Deep: money fish (zander 10/.11, eel 16/.14, burbot 20/.17) → ~32 tokens, 0.37 hunger/min.
+- `DEEP_NAKKI_FACTOR` 1.5 → 2.5, iron 15 → 30.
+Result: neither pool dominates. Appeaser good endings by "fish deep below X hunger":
+always shallow 77%, X=30% 78%, X=50% 74%, always deep 67%. Aggressive peaks at X=50%.
+Tried first: deep food 0.30/min → deep-only collapsed the village (19%), shallow dominated.
+Deep food 0.42/min, or factor 1.5 → deep dominated again.
+The real game's fish table would need the same split.
+
 ### G. Fish farm: shelved
 A shop-built fish pool that feeds the village without touching the lake. Not
 implemented. It may come back if the restraint-based good ending tests well.
@@ -144,7 +157,7 @@ implemented. It may come back if the restraint-based good ending tests well.
   | Cautious   | 9%   | 84% | 6%     |
 
   The strategies are not yet equally viable.
-- Deep vs shallow: with no extra walk, deep water is faster per fish (22.5 s vs 24.1 s),
+- (Resolved 2026-11-03 by J.) Deep vs shallow: with no extra walk, deep water is faster per fish (22.5 s vs 24.1 s),
   pays more (22 vs 15 tokens/min) and feeds more (0.45 vs 0.30 hunger/min). Its only
   downside is ×`DEEP_NAKKI_FACTOR` Näkki risk. Shallow may need a reason to exist.
 - After collapse: shop with banked tokens? Sim default `SHOP_OPEN_AFTER_COLLAPSE = True`;

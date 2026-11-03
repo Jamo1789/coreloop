@@ -23,17 +23,17 @@ from engine import Game, hunger_rate, lerp
 # Strategies
 # ----------------------------------------------------------------------
 STRATEGIES = {
-    # fishes deep, holds the haul, gambles at high hunger, keeps little iron
-    "aggressive": dict(pool="deep", deep_above_hunger=0.0, deposit_hunger=0.85, iron_target=1,
+    # mostly deep (money), holds the haul, gambles at high hunger, keeps little iron
+    "aggressive": dict(deep_below_hunger=0.6, deposit_hunger=0.85, iron_target=1,
                        seita_wrath=60, story_hunger=0.5,
                        errands=["murmuring_bait", "slumberhook"]),
-    # shallow, deposits early, stocks iron
-    # (deep_above_hunger: shallow stops out-feeding the hunger curve around 50%)
-    "cautious":   dict(pool="shallow", deep_above_hunger=0.45, deposit_hunger=0.35, iron_target=2,
+    # mostly shallow (food), deposits early, stocks iron
+    # (deep_below_hunger: fish deep for tokens below this hunger, shallow for food above it)
+    "cautious":   dict(deep_below_hunger=0.2, deposit_hunger=0.35, iron_target=2,
                        seita_wrath=40, story_hunger=0.25,
                        errands=["slumberhook"]),
     # keeps wrath low with constant Seita sacrifices, aims for the good ending
-    "appeaser":   dict(pool="shallow", deep_above_hunger=0.45, deposit_hunger=0.45, iron_target=1,
+    "appeaser":   dict(deep_below_hunger=0.3, deposit_hunger=0.45, iron_target=1,
                        seita_wrath=15, story_hunger=0.3,
                        errands=["slumberhook"]),
 }
@@ -48,7 +48,7 @@ def confusion(game):
 def decide(game, s):
     """What the strategy *wants* to do this step."""
     acts = game.available_actions()
-    cast = "cast_deep" if game.hunger > s["deep_above_hunger"] else f"cast_{s['pool']}"
+    cast = "cast_deep" if game.hunger < s["deep_below_hunger"] else "cast_shallow"
 
     if game.collapsed:                                   # nothing to gain from fishing
         if game.iron < s["iron_target"] and "shop:iron" in acts:

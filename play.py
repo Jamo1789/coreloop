@@ -104,9 +104,9 @@ def log_panel(g):
 def describe(g, a):
     risk = "[grey62](outdoor: hunger rises, Näkki risk)[/]"
     if a == "cast_shallow":
-        return f"Cast in the shallows  {risk}"
+        return f"Cast in the shallows  [grey62](food fish: feed the village, few tokens)[/]"
     if a == "cast_deep":
-        return f"Cast in deep water  [grey62](same shore, better fish, more Näkki)[/]"
+        return f"Cast in deep water  [grey62](money fish: more tokens, less food, {C.DEEP_NAKKI_FACTOR:g}x Näkki)[/]"
     if a == "deposit":
         n = len(g.haul) + g.has_fat_pike
         odds = f", [magenta]{g.bonus_chance:.0%} double-token gamble[/]" if g.bonus_chance else ""

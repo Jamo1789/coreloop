@@ -15,6 +15,8 @@ folder; this is an abstract model used to tune numbers before changing the game 
 - **Deposit gamble:** above a hunger threshold, a deposit has a chance (rising with hunger)
   to pay bonus tokens. The cost is that hunger stays high, near starvation.
 - **Seita stone:** sacrifice fish (or the Fat Pike from the boss) to lower wrath.
+- **Shallow vs deep:** shallow water has food fish (feed the village), deep water has money
+  fish (tokens) and more Näkki risk. Both are cast from the same shore.
 - **Shop:** spend tokens on iron (barred windows and haul bucket removed).
 - **Story items:** Murmuring Bait and the slumberhook are not sold. They are fetched on
   optional outdoor errands that cost time (and so hunger and Näkki risk) instead of tokens.

@@ -34,27 +34,30 @@ HUNGER_RATE_AT_MAX = 0.45 / 60   # OPEN: per second at 100% hunger
 SHOP_OPEN_AFTER_COLLAPSE = True
 
 # ---------------------------------------------------------------
-# FISH  (from the game: tokenReward, hungerValue, difficulty)
+# FISH  (tokenReward, hungerValue, difficulty) - REARRANGED 2026-11-03, differs from the game.
+# Shallow = food fish (feed the village), deep = money fish (tokens, little food).
+# In the game's table every fish gave ~0.02 hunger per token, so deep won on both.
+# Game values were: perch 5/.10, pike 10/.20, roach/ide/vendace 3/.05, zander 7/.15,
+# eel 12/.25, burbot 15/.30, bream 6/.12.
 # ---------------------------------------------------------------
 FISH = {
     #            tokens  hunger  difficulty
-    "perch":    (5,      0.10,   1.0),
-    "pike":     (10,     0.20,   2.0),
-    "roach":    (3,      0.05,   0.5),
-    "ide":      (3,      0.05,   0.5),
-    "vendace":  (3,      0.05,   0.5),
-    "zander":   (7,      0.15,   0.1),   # difficulty 0.1 looks like a typo in the game
-    "eel":      (12,     0.25,   1.8),
-    "burbot":   (15,     0.30,   2.2),
-    "bream":    (6,      0.12,   0.8),
+    "perch":    (4,      0.14,   1.0),
+    "pike":     (10,     0.20,   2.0),   # in both pools: middle of the road
+    "roach":    (2,      0.08,   0.5),
+    "ide":      (2,      0.08,   0.5),
+    "vendace":  (2,      0.08,   0.5),
+    "zander":   (10,     0.11,   0.1),   # difficulty 0.1 looks like a typo in the game
+    "eel":      (16,     0.14,   1.8),
+    "burbot":   (20,     0.17,   2.2),
+    "bream":    (4,      0.16,   0.8),
     "fatPike":  (50,     0.50,   2.0),   # boss reward, not in the pools
 }
 
-FISH_POOLS = {
-    "shallow": {"perch": 0.5, "pike": 0.4, "roach": 0.1, "ide": 0.1,
-                "vendace": 0.1, "bream": 0.3},
-    "deep":    {"zander": 0.5, "eel": 0.4, "roach": 0.1, "ide": 0.1,
-                "vendace": 0.1, "pike": 0.4, "perch": 0.5, "burbot": 0.3},
+FISH_POOLS = {   # shallow ~12 tok & 0.39 hunger per min, deep ~32 tok & 0.37 hunger per min
+    "shallow": {"perch": 0.5, "pike": 0.2, "roach": 0.2, "ide": 0.2,
+                "vendace": 0.2, "bream": 0.4},
+    "deep":    {"zander": 0.5, "eel": 0.4, "burbot": 0.3, "pike": 0.3, "perch": 0.2},
 }
 
 # ---------------------------------------------------------------
@@ -88,7 +91,7 @@ WRATH_PER_FISH_DEPOSITED = 2                                           # PLACEHO
 # Chance per cast that Näkki bites instead of a fish (scales with wrath).
 NAKKI_CHANCE_AT_ZERO_WRATH = 0.03                                      # PLACEHOLDER
 NAKKI_CHANCE_AT_MAX_WRATH = 0.25                                       # PLACEHOLDER
-DEEP_NAKKI_FACTOR = 1.5          # deep water is more dangerous         # PLACEHOLDER
+DEEP_NAKKI_FACTOR = 2.5          # deep water is the risky money spot (was 1.5) # PLACEHOLDER
 STORY_NAKKI_FACTOR = 0.5         # per story chunk, vs per cast         # PLACEHOLDER
 NAKKI_ENCOUNTER_TIME = 10        # seconds lost to an encounter
 
@@ -108,7 +111,7 @@ SEITA_WRATH_FAT_PIKE = 40        # offering the boss fish (Fat Pike)
 # OPEN: prices; item effects are placeholders - map them to the real accessories.
 # ---------------------------------------------------------------
 SHOP = {
-    "iron":           {"price": 15, "effect": "+1 iron"},
+    "iron":           {"price": 30, "effect": "+1 iron"},   # was 15 until 2026-11-03
 }
 
 # ---------------------------------------------------------------
