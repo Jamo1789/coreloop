@@ -5,6 +5,7 @@ Run:   python play.py          (random run)
        python play.py 42       (repeatable run with seed 42)
 
 Type the number of an action and press Enter.  h = help, q = quit.
+Every run is saved to runs/ and ends with a play-style analysis (see playstyle.py).
 """
 import sys
 
@@ -15,6 +16,7 @@ from rich.table import Table
 from rich.text import Text
 
 import config as C
+import playstyle
 from engine import Game
 
 console = Console()
@@ -147,7 +149,8 @@ def render(g, actions):
 
 
 HELP = f"""[bold]How it works[/]
-• Outdoor time (walking, casting, story) raises hunger by {C.HUNGER_PER_SECOND * 60:.2f} per minute.
+• Outdoor time (walking, casting, story) raises hunger: {C.HUNGER_RATE_AT_ZERO * 60:.2f}/min at 0%,
+  rising to {C.HUNGER_RATE_AT_MAX * 60:.2f}/min at 100%. The hungrier the village, the faster it gets worse.
   The cabin pauses hunger. Shop and Seita take no time.
 • Murmuring Bait and the slumberhook are not sold: fetch them on story errands (outdoor time).
 • Deposit feeds the village and pays tokens, but each fish adds +{C.WRATH_PER_FISH_DEPOSITED} wrath.
@@ -168,6 +171,9 @@ def main():
         choice = Prompt.ask("[bold]>[/]", default="").strip().lower()
         if choice == "q":
             console.print("You leave the cabin. The lake waits.")
+            if g.decisions:
+                g.end_reason = "quit"
+                style_panel(g, seed)
             return
         if choice == "h":
             console.print(Panel(HELP, border_style="cyan"))
@@ -191,6 +197,27 @@ def main():
     for k, v in rows:
         t.add_row(k, v)
     console.print(t)
+    style_panel(g, seed)
+
+
+def style_panel(g, seed):
+    console.print("[grey50]Comparing your choices with the simulated players...[/]")
+    style, dists, f = playstyle.classify(g)
+    ref = playstyle.reference()
+    path = playstyle.save_run(g, seed)
+
+    t = Table(title=f"Your play style: closest to [bold]{style}[/]", border_style="cyan")
+    t.add_column("")
+    t.add_column("you", style="bold")
+    for name in ref:
+        t.add_column(name, style="bold cyan" if name == style else "grey62")
+    for k, label, _ in playstyle.FEATURES:
+        fmt = (lambda v: f"{v:.0%}") if k in ("deep_share", "deposit_hunger", "story_hunger")             else (lambda v: f"{v:.1f}")
+        t.add_row(label, fmt(f[k]), *(fmt(ref[n][k]) for n in ref))
+    t.add_row("distance (lower = more alike)", "", *(f"{dists[n]:.2f}" for n in ref))
+    console.print(t)
+    console.print(f"[grey50]Saved to {path.relative_to(path.parent.parent)}. "
+                  f"See all runs: python playstyle.py[/]")
 
 
 if __name__ == "__main__":

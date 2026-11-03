@@ -19,6 +19,7 @@ Actions:
     seita_fatpike              offer the fat pike from the boss
     shop:<item>                buy an item
 """
+import math
 import random
 
 import config as C
@@ -27,6 +28,19 @@ import config as C
 def lerp(a, b, t):
     t = max(0.0, min(1.0, t))
     return a + (b - a) * t
+
+
+def hunger_rate(h):
+    """Hunger gained per outdoor second at hunger h."""
+    return lerp(C.HUNGER_RATE_AT_ZERO, C.HUNGER_RATE_AT_MAX, h)
+
+
+def hunger_after(h, seconds):
+    """Exact hunger after `seconds` outdoors (dh/dt = a + b*h), so chunk size doesn't matter."""
+    a, b = C.HUNGER_RATE_AT_ZERO, C.HUNGER_RATE_AT_MAX - C.HUNGER_RATE_AT_ZERO
+    if abs(b) < 1e-12:
+        return h + a * seconds
+    return (h + a / b) * math.exp(b * seconds) - a / b
 
 
 class Game:
@@ -68,6 +82,7 @@ class Game:
         self._trip_start = None
         self._trip_fish = 0
         self.history = []               # (time, hunger, wrath, tokens)
+        self.decisions = []             # one dict per action taken, see act()
 
         self.log = []
         self._record()
@@ -153,6 +168,12 @@ class Game:
         if action not in self.available_actions():
             self._say(f"Can't do '{action}' right now.")
             return self.log[start:]
+        self.decisions.append({
+            "time": round(self.time, 1), "action": action, "location": self.location,
+            "hunger": round(self.hunger, 3), "wrath": round(self.wrath, 1),
+            "tokens": self.tokens, "iron": self.iron, "haul": len(self.haul),
+            "stage": self.stage, "options": len(self.available_actions()),
+        })
         if action in ("cast_shallow", "cast_deep"):
             self._cast(action.split("_")[1])
         elif action == "deposit":
@@ -317,7 +338,7 @@ class Game:
         self.time += seconds
         self.outdoor_time += seconds
         if not self.collapsed:
-            self.hunger = min(1.0, self.hunger + seconds * C.HUNGER_PER_SECOND)
+            self.hunger = min(1.0, hunger_after(self.hunger, seconds))
             if self.hunger >= 1.0:
                 self.collapsed = True
                 self.collapse_time = self.time

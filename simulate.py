@@ -6,7 +6,7 @@ Batch mode: simulated players with a CONFUSION variable play many runs.
     python simulate.py --strategy cautious
     python simulate.py --no-plot          # text report only
     python simulate.py --trace aggressive # print one full run log
-    python simulate.py --sweep 0.15 0.2 0.25   # compare hunger rates (per min)
+    python simulate.py --sweep 0.15:0.45 0.25   # compare hunger rates (per min, at 0%:at 100%)
 
 Strategies are bundles of simple rules (see STRATEGIES). Every decision the bot
 makes has a `confusion` chance of being replaced by a random available action:
@@ -17,25 +17,27 @@ import statistics as st
 from collections import Counter
 
 import config as C
-from engine import Game, lerp
+from engine import Game, hunger_rate, lerp
 
 # ----------------------------------------------------------------------
 # Strategies
 # ----------------------------------------------------------------------
 STRATEGIES = {
     # fishes deep, holds the haul, gambles at high hunger, keeps little iron
-    "aggressive": dict(pool="deep", deposit_hunger=0.85, iron_target=1,
+    "aggressive": dict(pool="deep", deep_above_hunger=0.0, deposit_hunger=0.85, iron_target=1,
                        seita_wrath=60, story_hunger=0.5,
                        errands=["murmuring_bait", "slumberhook"]),
     # shallow, deposits early, stocks iron
-    "cautious":   dict(pool="shallow", deposit_hunger=0.35, iron_target=2,
+    # (deep_above_hunger: shallow stops out-feeding the hunger curve around 50%)
+    "cautious":   dict(pool="shallow", deep_above_hunger=0.45, deposit_hunger=0.35, iron_target=2,
                        seita_wrath=40, story_hunger=0.25,
                        errands=["slumberhook"]),
     # keeps wrath low with constant Seita sacrifices, aims for the good ending
-    "appeaser":   dict(pool="shallow", deposit_hunger=0.45, iron_target=1,
+    "appeaser":   dict(pool="shallow", deep_above_hunger=0.45, deposit_hunger=0.45, iron_target=1,
                        seita_wrath=15, story_hunger=0.3,
                        errands=["slumberhook"]),
 }
+STRATEGIES["random"] = None   # every choice random: the baseline real play should beat
 
 
 def confusion(game):
@@ -46,7 +48,7 @@ def confusion(game):
 def decide(game, s):
     """What the strategy *wants* to do this step."""
     acts = game.available_actions()
-    cast = f"cast_{s['pool']}"
+    cast = "cast_deep" if game.hunger > s["deep_above_hunger"] else f"cast_{s['pool']}"
 
     if game.collapsed:                                   # nothing to gain from fishing
         if game.iron < s["iron_target"] and "shop:iron" in acts:
@@ -81,7 +83,7 @@ def play_one(strategy, seed=None):
     s = STRATEGIES[strategy]
     while not g.ended:
         acts = g.available_actions()
-        if g.rng.random() < confusion(g):
+        if s is None or g.rng.random() < confusion(g):
             action = g.rng.choice(acts)
         else:
             action = decide(g, s)
@@ -129,13 +131,14 @@ def summarize(name, games):
 
 def economy():
     """The math without randomness: what one minute of fishing is worth."""
-    rate = C.HUNGER_PER_SECOND * 60
+    lo, hi = hunger_rate(0) * 60, hunger_rate(1) * 60
     print(f"\n=== ECONOMY (expected values, no gear, haul {C.HAUL_CAPACITY}) ===")
-    print(f"Hunger rises {rate:.2f} per outdoor minute "
-          f"(0 -> 100% in {1 / rate:.1f} min)")
+    print(f"Hunger rises {lo:.2f}/min at 0% -> {hunger_rate(0.5) * 60:.2f} at 50% -> {hi:.2f} at 100%"
+          f" (per outdoor minute)")
     story = sum(s for _, s in C.STORY_STAGES)
-    print(f"Story needs {story / 60:.1f} outdoor min -> {story / 60 * rate:.2f} hunger to make up\n")
-    print(f"{'pool':8} {'s/fish':>7} {'tok/min':>8} {'relief/min':>11} {'net/min':>8}  pike")
+    print(f"Story needs {story / 60:.1f} outdoor min -> {story / 60 * lo:.2f}-{story / 60 * hi:.2f}"
+          f" hunger to make up\n")
+    print(f"{'pool':8} {'s/fish':>7} {'tok/min':>8} {'relief/min':>11} {'keeps up below':>15}  pike")
     for pool, weights in C.FISH_POOLS.items():
         W = sum(weights.values())
         p = {f: w / W for f, w in weights.items()}
@@ -146,9 +149,10 @@ def economy():
         tok = sum(p[f] * C.FISH[f][0] for f in p)
         food = sum(p[f] * C.FISH[f][1] for f in p)
         relief = food / secs * 60
-        print(f"{pool:8} {secs:7.1f} {tok / secs * 60:8.1f} {relief:11.2f} "
-              f"{relief - rate:+8.2f}  {p.get('pike', 0):.0%}")
-    print("net/min > 0 means fishing out-feeds hunger; that surplus pays for story time.")
+        h = 1.0 if hi <= lo else max(0.0, min(1.0, (relief - lo) / (hi - lo)))
+        print(f"{pool:8} {secs:7.1f} {tok / secs * 60:8.1f} {relief:11.2f} {h:14.0%}  "
+              f" {p.get('pike', 0):.0%}")
+    print("'keeps up below': the hunger level under which fishing there out-feeds hunger.")
 
 
 def plot(results):
@@ -197,8 +201,8 @@ def main():
     ap.add_argument("--strategy", choices=list(STRATEGIES))
     ap.add_argument("--no-plot", action="store_true")
     ap.add_argument("--trace", choices=list(STRATEGIES), help="print one full run")
-    ap.add_argument("--sweep", type=float, nargs="+", metavar="HUNGER_PER_MIN",
-                    help="compare several hunger rates, e.g. --sweep 0.15 0.2 0.25 0.3")
+    ap.add_argument("--sweep", nargs="+", metavar="LOW:HIGH",
+                    help="compare hunger rates per min at 0%%:100%%, e.g. --sweep 0.25 0.15:0.45")
     args = ap.parse_args()
 
     if args.sweep:
@@ -206,11 +210,13 @@ def main():
         print(f"{'hunger/min':>10} {'strategy':>11} {'good':>6} {'bad':>6} {'caught':>7}"
               f" {'collapse':>9} {'minutes':>8} {'tokens':>7}")
         for rate in args.sweep:
-            C.HUNGER_PER_SECOND = rate / 60
+            lo, _, hi = rate.partition(":")
+            C.HUNGER_RATE_AT_ZERO = float(lo) / 60
+            C.HUNGER_RATE_AT_MAX = float(hi or lo) / 60
             for n in names:
                 gs = [play_one(n, seed=i) for i in range(args.runs)]
                 e = Counter(g.end_reason for g in gs)
-                print(f"{rate:10.2f} {n:>11} {e['good_ending'] / len(gs):6.0%}"
+                print(f"{rate:>10} {n:>11} {e['good_ending'] / len(gs):6.0%}"
                       f" {e['bad_ending'] / len(gs):6.0%} {e['caught'] / len(gs):7.0%}"
                       f" {sum(g.collapsed for g in gs) / len(gs):9.0%}"
                       f" {mean([g.time / 60 for g in gs]):8.1f}"

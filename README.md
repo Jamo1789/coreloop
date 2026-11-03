@@ -6,7 +6,8 @@ folder; this is an abstract model used to tune numbers before changing the game 
 
 ## The loop being modelled
 - Player fishes to feed a starving village. Depositing fish gives tokens.
-- **Hunger** (village threat) only rises during outdoor time. Depositing fish lowers it.
+- **Hunger** (village threat) only rises during outdoor time, faster the hungrier the village
+  is (0.15/min at 0% → 0.45/min at 100%). Depositing fish lowers it.
 - **Wrath** (personal threat) rises per fish deposited. Its ONLY effect is Näkki's chance
   to bite on a cast (lower chance per story chunk, higher in deep water). Wrath and hunger
   are deliberately decoupled.
@@ -33,16 +34,19 @@ folder; this is an abstract model used to tune numbers before changing the game 
 - `engine.py` – `Game` class: state and rules. No UI. API: `available_actions()`, `act()`, `snapshot()`.
 - `play.py` – interactive terminal UI (`rich`): you pick actions, bars update live.
   Run `python play.py [seed]`.
-- `simulate.py` – batch mode. Strategy bots (aggressive / cautious / appeaser) with a
+- `simulate.py` – batch mode. Strategy bots (aggressive / cautious / appeaser, plus a fully
+  random baseline) with a
   **confusion** variable play N runs. Prints an economy break-even table, per-strategy
   stats and saves `sim_results.png`. Flags: `--runs`, `--strategy`, `--no-plot`,
   `--trace <strategy>`, `--sweep <hunger per min ...>`.
+- `playstyle.py` – play-style analysis. `play.py` logs every decision to `runs/` and compares
+  your run with the bots at the end. `python playstyle.py` lists all logged runs.
 - `DESIGN_DECISIONS.md` – settled design decisions and what is still open.
 - `requirements.txt` – Python packages.
 
-Time is in seconds, hunger 0..1 (linear), wrath 0..100. Fish table copied from the real
-game's GameState. Real game currently uses an accelerating log hunger curve every 15 s
-and still multiplies hunger by wrath; the sim uses linear and no wrath link on purpose.
+Time is in seconds, hunger 0..1, wrath 0..100. Fish table copied from the real game's
+GameState. Real game currently uses a log hunger curve every 15 s and still multiplies hunger
+by wrath; the sim uses a linearly rising rate and no wrath link on purpose (decision F).
 
 ## Goals
 - Find numbers where the loop is tense but not a death spiral.

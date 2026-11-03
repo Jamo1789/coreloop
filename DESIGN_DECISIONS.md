@@ -80,7 +80,19 @@ Real income is ~10–22 tokens per outdoor minute (5–15 tokens per fish).
   (Murmuring Bait and slumberhook left the shop on 2026-10-31, see H; haul bucket removed
   2026-11-01, see I.)
 
-### F. Hunger curve: keep linear for now
+### F. Hunger curve: rate rises with hunger (changed 2026-11-03)
+`rate = HUNGER_RATE_AT_ZERO + (AT_MAX - AT_ZERO) × hunger`, now 0.15 → 0.45 per outdoor
+minute. Replaces the flat 0.25/min. Why: with flat hunger every system was a plain sum, so
+the order of decisions hardly mattered and a fully random player won 56% of runs. With the
+rising rate, low hunger is cheap time (push the story right after a deposit), shallow fishing
+stops keeping up above ~50% hunger (only deep water can pull the village back), and the 70%
+gamble zone is where hunger climbs fastest. Sim (2026-11-03): random player 56% → ~37% good
+endings; reacting to hunger ("go deep above 45%") lifts the appeaser from 47% to ~79%.
+Softer curves (0.15 → 0.40, 0.12 → 0.42) let the random player win 58–77% again.
+Not the real game's formula: its log curve is ~0 at 0% and outruns fishing above ~20%,
+and multiplies by wrath, which decision 3 rules out.
+
+Old note, kept for history:
 The real game's curve (every 15 s: `log10(1 + 2h + 0.01) * 0.6 * (1 + wrath/50)`) actually
 ACCELERATES with hunger and still multiplies by wrath, so above ~20% hunger it outruns
 fishing. The sim is **linear** with no wrath link while balancing. Fishing feeds the
@@ -115,12 +127,14 @@ implemented. It may come back if the restraint-based good ending tests well.
 ---
 
 ## Still open (marked `# OPEN` in `config.py`)
-- Hunger rate: 0.25/min since 2026-11-01. At 0.20 hunger never threatened anyone (0% collapse,
+- Hunger curve ends (0.15 → 0.45/min since 2026-11-03, see F). Before that, flat rate:
+  0.25/min since 2026-11-01. At 0.20 hunger never threatened anyone (0% collapse,
   peak hunger 51–64%, so the 70% deposit gamble barely triggered). At 0.25 peak hunger reaches
   ~75% and collapse is rare; at 0.28 collapse hits ~25% of cautious/appeaser runs.
   Sensible range ~0.24–0.26.
 - Shop prices and `BOARDING_COST`. With iron the only purchase, tokens may pile up.
 - Story-item errand lengths and unlock stages (`STORY_ITEMS`).
+- Skill gap: random player vs best strategy. Track it with `python simulate.py`.
 - Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
 
   | Strategy   | Good | Bad | Caught |

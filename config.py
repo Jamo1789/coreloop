@@ -15,11 +15,16 @@ MAX_TIME = 60 * 60       # safety cap: one hour of game time
 RANDOM_SEED = None       # int for repeatable runs
 
 # ---------------------------------------------------------------
-# HUNGER - linear while balancing (real game uses an accelerating log curve)
+# HUNGER - the rate grows with hunger itself (decision F, 2026-11-03):
+#   rate = AT_ZERO + (AT_MAX - AT_ZERO) * hunger      (per outdoor second)
+# So hunger accelerates: low hunger is cheap time, high hunger is expensive.
+# Set both ends equal for the old flat rate. Fishing feeds ~0.30/min shallow,
+# ~0.45/min deep, so shallow stops keeping up once the rate passes 0.30.
 # Only rises while the player is OUTDOORS. Paused in the cabin.
 # ---------------------------------------------------------------
 HUNGER_START = 0.0
-HUNGER_PER_SECOND = 0.25 / 60    # OPEN: 0.25/min -> 0% to 100% in 4 min outdoors (break-even ~0.30)
+HUNGER_RATE_AT_ZERO = 0.15 / 60  # OPEN: per second at 0% hunger
+HUNGER_RATE_AT_MAX = 0.45 / 60   # OPEN: per second at 100% hunger
 
 # At hunger 1.0 the village COLLAPSES (decision A):
 #   - deposits give no tokens and no longer lower hunger
