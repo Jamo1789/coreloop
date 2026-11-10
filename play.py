@@ -79,7 +79,12 @@ def status_panel(g):
     if s["has_fat_pike"]:
         res.append("+ Fat Pike", style="magenta")
     owned = ", ".join(s["owned"]) or "nothing yet"
-    title = (f"[bold]{mmss(s['time'])}[/]  ·  at the {s['location']}  ·  "
+    clock = f"[bold]{mmss(s['time'])}[/]"
+    if s["time_left"] is not None:
+        left = s["time_left"]
+        tight = left < g.story_left * 1.4 + 30
+        clock += f" [{'bold red' if tight else 'grey62'}](ice in {mmss(left)})[/]"
+    title = (f"{clock}  ·  at the {s['location']}  ·  "
              f"Näkki encounters {s['nakki_encounters']}")
     return Panel(Group(table, Text(""), res, Text(f"Owned: {owned}", style="grey62")),
                  title=title, border_style="blue")
@@ -115,7 +120,7 @@ def describe(g, a):
     if a == "story":
         return f"Story: {g.stage_name}  {risk}"
     if a == "seita":
-        return f"Seita: sacrifice cheapest fish  [grey62](-{C.SEITA_WRATH_PER_FISH} wrath)[/]"
+        return f"Seita: sacrifice cheapest fish  [grey62](-{g.seita_relief:.1f} wrath, less each time)[/]"
     if a == "seita_fatpike":
         return f"Seita: offer the Fat Pike  [grey62](-{C.SEITA_WRATH_FAT_PIKE} wrath)[/]"
     if a.startswith("errand:"):
@@ -126,7 +131,7 @@ def describe(g, a):
     if a.startswith("shop:"):
         item = a.split(":", 1)[1]
         info = C.SHOP[item]
-        return f"Shop: {item}  [yellow]{info['price']} tokens[/]  [grey62]({info['effect']})[/]"
+        return f"Shop: {item}  [yellow]{g.price(item)} tokens[/]  [grey62]({info['effect']}, price rises each buy)[/]"
     return a
 
 
@@ -155,7 +160,9 @@ HELP = f"""[bold]How it works[/]
 • Murmuring Bait and the slumberhook are not sold: fetch them on story errands (outdoor time).
 • Deposit feeds the village and pays tokens, but each fish adds +{C.WRATH_PER_FISH_DEPOSITED} wrath.
 • Wrath only raises Näkki's chance to bite. Iron banishes her. No iron: pay {C.BOARDING_COST}
-  tokens to board the windows and survive. No tokens: game over.
+  tokens to board the windows and survive (+{C.BOARDING_COST_STEP} each time). No tokens: game over.
+• Prices rise: each iron costs more than the last. Each Seita sacrifice calms Näkki less.
+• The lake freezes at {mmss(C.DEADLINE or C.MAX_TIME)}: finish the story before then or it's over.
 • Above {C.BONUS_HUNGER_THRESHOLD:.0%} hunger, deposits are a gamble for x{C.BONUS_MULTIPLIER:g} tokens.
 • At 100% hunger the village collapses: no more tokens, wrath freezes, bad ending sealed.
 • Good ending: finish the story without a collapse, with wrath ≤ {C.GOOD_ENDING_MAX_WRATH}.

@@ -27,7 +27,9 @@ folder; this is an abstract model used to tune numbers before changing the game 
   the same shore, so switching costs no time. Once in the cabin, deposit, Seita and shop
   take no time.
 - Hunger 100% = village collapse (no tokens, wrath frozen, bad ending locked).
-- No iron vs Näkki: pay `BOARDING_COST` tokens to survive, else game over.
+- No iron vs Näkki: pay `BOARDING_COST` tokens to survive (rises each time), else game over.
+- Iron gets pricier with each purchase; each Seita sacrifice calms Näkki less.
+- Deadline: finish the story by `DEADLINE` (18 min) or the lake freezes (bad ending).
 - Good ending: story done, never collapsed, final wrath <= `GOOD_ENDING_MAX_WRATH`.
 
 ## Files

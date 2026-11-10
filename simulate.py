@@ -7,6 +7,7 @@ Batch mode: simulated players with a CONFUSION variable play many runs.
     python simulate.py --no-plot          # text report only
     python simulate.py --trace aggressive # print one full run log
     python simulate.py --sweep 0.15:0.45 0.25   # compare hunger rates (per min, at 0%:at 100%)
+    python simulate.py --deadline 15 18 22 none # compare deadlines (minutes)
 
 Strategies are bundles of simple rules (see STRATEGIES). Every decision the bot
 makes has a `confusion` chance of being replaced by a random available action:
@@ -45,9 +46,17 @@ def confusion(game):
     return min(1.0, c + C.CONFUSION_WRATH_FACTOR * game.wrath / C.WRATH_MAX)
 
 
+# Bots push the story once the time left is under this x the story still to play
+# (story chunks also lose time to Näkki encounters and the odd walk).
+DEADLINE_MARGIN = 1.4
+
+
 def decide(game, s):
     """What the strategy *wants* to do this step."""
     acts = game.available_actions()
+    if (game.time_left is not None and not game.story_done
+            and game.time_left < game.story_left * DEADLINE_MARGIN + 30):
+        return "story"                                   # out of time: drop everything else
     cast = "cast_deep" if game.hunger < s["deep_below_hunger"] else "cast_shallow"
 
     if game.collapsed:                                   # nothing to gain from fishing
@@ -94,7 +103,7 @@ def play_one(strategy, seed=None):
 # ----------------------------------------------------------------------
 # Reporting
 # ----------------------------------------------------------------------
-ENDINGS = ["good_ending", "bad_ending", "caught", "timeout"]
+ENDINGS = ["good_ending", "bad_ending", "deadline", "caught", "timeout"]
 
 
 def mean(xs):
@@ -121,8 +130,12 @@ def summarize(name, games):
     print(f"Income:       {mean(tpm):.1f} tokens per outdoor minute,"
           f" {mean([g.tokens_earned for g in games]):.0f} per run")
     print(f"Näkki:        {mean([g.nakki_encounters for g in games]):.1f} encounters/run,"
-          f" iron used {mean([g.iron_used for g in games]):.1f},"
+          f" iron used {mean([g.iron_used for g in games]):.1f}"
+          f" (bought {mean([g.bought.get('iron', 0) for g in games]):.1f}),"
           f" boardings {mean([g.boardings for g in games]):.2f}")
+    print(f"Tokens left:  {mean([g.tokens for g in games]):.0f} avg at the end (unspent)")
+    print(f"Seita:        {mean([g.fish_sacrificed - g.fatpike_sacrificed for g in games]):.1f}"
+          f" fish sacrificed/run, last one worth {mean([g.seita_relief for g in games]):.1f} wrath")
     print(f"Wrath at end: {mean([g.wrath for g in games]):.0f} avg")
     print(f"Gambles:      {gam_w + gam_l} taken, {gam_w / max(1, gam_w + gam_l):.0%} won")
     print("Gear owned:   " + ", ".join(f"{k} {v / n:.0%}" for k, v in bought.most_common()))
@@ -160,7 +173,7 @@ def plot(results):
 
     names = list(results)
     colors = {"good_ending": "#2e7d32", "bad_ending": "#9e9e9e",
-              "caught": "#c62828", "timeout": "#f9a825"}
+              "deadline": "#5c6bc0", "caught": "#c62828", "timeout": "#f9a825"}
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
     # 1. Ending distribution per strategy
@@ -203,7 +216,26 @@ def main():
     ap.add_argument("--trace", choices=list(STRATEGIES), help="print one full run")
     ap.add_argument("--sweep", nargs="+", metavar="LOW:HIGH",
                     help="compare hunger rates per min at 0%%:100%%, e.g. --sweep 0.25 0.15:0.45")
+    ap.add_argument("--deadline", nargs="+", metavar="MIN",
+                    help="compare deadlines in minutes ('none' = no deadline), e.g. --deadline 15 18 none")
     args = ap.parse_args()
+
+    if args.deadline:
+        names = [args.strategy] if args.strategy else list(STRATEGIES)
+        print(f"{'deadline':>8} {'strategy':>11} {'good':>6} {'bad':>6} {'late':>6} {'caught':>7}"
+              f" {'collapse':>9} {'minutes':>8} {'tok left':>9}")
+        for d in args.deadline:
+            C.DEADLINE = None if d == "none" else float(d) * 60
+            for n in names:
+                gs = [play_one(n, seed=i) for i in range(args.runs)]
+                e = Counter(g.end_reason for g in gs)
+                print(f"{d:>8} {n:>11} {e['good_ending'] / len(gs):6.0%}"
+                      f" {e['bad_ending'] / len(gs):6.0%} {e['deadline'] / len(gs):6.0%}"
+                      f" {e['caught'] / len(gs):7.0%}"
+                      f" {sum(g.collapsed for g in gs) / len(gs):9.0%}"
+                      f" {mean([g.time / 60 for g in gs]):8.1f}"
+                      f" {mean([g.tokens for g in gs]):9.0f}")
+        return
 
     if args.sweep:
         names = [args.strategy] if args.strategy else list(STRATEGIES)

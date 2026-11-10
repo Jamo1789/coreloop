@@ -12,6 +12,12 @@ Lines marked  # OPEN  are unsettled design questions.
 # GENERAL
 # ---------------------------------------------------------------
 MAX_TIME = 60 * 60       # safety cap: one hour of game time
+
+# Deadline (decision K, 2026-11-09): the story must be finished by this game time, or
+# the lake freezes over with Näkki still in it -> "deadline" ending (a bad ending).
+# Time only passes outdoors, so this is an outdoor-time budget: every extra fishing trip
+# spent "fixing" hunger or tokens is time the story doesn't get. None = no deadline.
+DEADLINE = 18 * 60                                                     # OPEN
 RANDOM_SEED = None       # int for repeatable runs
 
 # ---------------------------------------------------------------
@@ -98,12 +104,16 @@ NAKKI_ENCOUNTER_TIME = 10        # seconds lost to an encounter
 IRON_START = 1
 # No iron (decision B): pay BOARDING_COST tokens, flee to the cabin, survive.
 # Not enough tokens -> game over.
+# Each boarding costs more than the last (decision L): 30, 60, 90, ...
 BOARDING_COST = 30                                                     # OPEN
+BOARDING_COST_STEP = 30                                                # OPEN
 
 # ---------------------------------------------------------------
 # SEITA STONE  (free on time, costs fish)
 # ---------------------------------------------------------------
-SEITA_WRATH_PER_FISH = 8
+SEITA_WRATH_PER_FISH = 8         # the first sacrifice ...
+SEITA_DECAY = 0.8                # ... each later one removes this x the previous (decision L) # OPEN
+SEITA_WRATH_MIN = 2              # ... but never less than this
 SEITA_WRATH_FAT_PIKE = 40        # offering the boss fish (Fat Pike)
 
 # ---------------------------------------------------------------

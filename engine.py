@@ -58,6 +58,7 @@ class Game:
         self.haul = []                  # fish names carried
         self.haul_capacity = C.HAUL_CAPACITY
         self.owned = set()
+        self.bought = {}                # shop item -> times bought (prices rise per purchase)
 
         self.stage = 0
         self.stage_progress = 0.0       # seconds into current stage
@@ -72,6 +73,7 @@ class Game:
         self.fish_caught = 0
         self.fish_deposited = 0
         self.fish_sacrificed = 0
+        self.fatpike_sacrificed = 0
         self.nakki_encounters = 0
         self.iron_used = 0
         self.boardings = 0
@@ -124,6 +126,14 @@ class Game:
         done = sum(self.stage_length(i) for i in range(min(self.stage, len(C.STORY_STAGES))))
         return (done + (0 if self.story_done else self.stage_progress)) / total
 
+    @property
+    def story_left(self):
+        """Outdoor seconds of story still to play."""
+        if self.story_done:
+            return 0.0
+        rest = sum(self.stage_length(i) for i in range(self.stage + 1, len(C.STORY_STAGES)))
+        return rest + self.stage_length() - self.stage_progress
+
     def catch_time(self, fish):
         t = C.CATCH_TIME_OVERRIDE.get(
             fish, C.CATCH_TIME_BASE + C.CATCH_TIME_PER_DIFFICULTY * C.FISH[fish][2])
@@ -132,6 +142,24 @@ class Game:
         if fish == "pike" and "slumberhook" in self.owned:
             t *= C.SLUMBERHOOK_FACTOR
         return t * self.rng.uniform(1 - C.CATCH_TIME_NOISE, 1 + C.CATCH_TIME_NOISE)
+
+    def price(self, item):
+        info = C.SHOP[item]
+        return info["price"] + info.get("step", 0) * self.bought.get(item, 0)
+
+    @property
+    def boarding_cost(self):
+        return C.BOARDING_COST + C.BOARDING_COST_STEP * self.boardings
+
+    @property
+    def seita_relief(self):
+        """Wrath removed by the next fish sacrifice: shrinks with every fish sacrificed."""
+        n = self.fish_sacrificed - self.fatpike_sacrificed
+        return max(C.SEITA_WRATH_MIN, C.SEITA_WRATH_PER_FISH * C.SEITA_DECAY ** n)
+
+    @property
+    def time_left(self):
+        return None if C.DEADLINE is None else max(0.0, C.DEADLINE - self.time)
 
     def shop_open(self):
         return not self.collapsed or C.SHOP_OPEN_AFTER_COLLAPSE
@@ -159,7 +187,7 @@ class Game:
                 acts.append("seita_fatpike")
         if self.shop_open():
             for item, info in C.SHOP.items():
-                if self.tokens >= info["price"]:
+                if self.tokens >= self.price(item):
                     acts.append(f"shop:{item}")
         return acts
 
@@ -267,13 +295,14 @@ class Game:
             self.iron -= 1
             self.iron_used += 1
             self._say(f"You throw iron. It sinks back. Iron left: {self.iron}.")
-        elif self.tokens >= C.BOARDING_COST:
-            self.tokens -= C.BOARDING_COST
+        elif self.tokens >= self.boarding_cost:
+            cost = self.boarding_cost
+            self.tokens -= cost
             self.boardings += 1
             self.location = "cabin"
             self._end_trip()
-            self._say(f"No iron! You flee and board the windows (-{C.BOARDING_COST} tokens). "
-                      f"You survive the breach.")
+            self._say(f"No iron! You flee and board the windows (-{cost} tokens). "
+                      f"You survive the breach. Next time: {self.boarding_cost}.")
         else:
             self._end("caught", "No iron, no tokens. Näkki drags you under.")
 
@@ -314,22 +343,25 @@ class Game:
 
     def _seita(self):
         cheapest = min(self.haul, key=lambda f: C.FISH[f][0])
+        relief = self.seita_relief
         self.haul.remove(cheapest)
         self.fish_sacrificed += 1
-        self.wrath = max(0.0, self.wrath - C.SEITA_WRATH_PER_FISH)
+        self.wrath = max(0.0, self.wrath - relief)
         self._say(f"Sacrificed a {cheapest} at the Seita. Wrath {self.wrath:.0f}.")
 
     def _seita_fatpike(self):
         self.has_fat_pike = False
         self.fish_sacrificed += 1
+        self.fatpike_sacrificed += 1
         self.wrath = max(0.0, self.wrath - C.SEITA_WRATH_FAT_PIKE)
         self._say(f"Offered the fat pike at the Seita. Wrath {self.wrath:.0f}.")
 
     def _buy(self, item):
-        self.tokens -= C.SHOP[item]["price"]
+        self.tokens -= self.price(item)
+        self.bought[item] = self.bought.get(item, 0) + 1
         if item == "iron":
             self.iron += 1
-        self._say(f"Bought {item}. Tokens left: {self.tokens}.")
+        self._say(f"Bought {item}. Tokens left: {self.tokens}. Next {item}: {self.price(item)}.")
 
     # ------------------------------------------------------------------
     # Internals
@@ -343,7 +375,9 @@ class Game:
                 self.collapsed = True
                 self.collapse_time = self.time
                 self._say("The village has collapsed. Näkki has won. Your fate is sealed.")
-        if self.time >= C.MAX_TIME:
+        if C.DEADLINE is not None and self.time >= C.DEADLINE and not self.ended:
+            self._end("deadline", "The lake freezes over with Näkki still beneath it. Too late.")
+        elif self.time >= C.MAX_TIME:
             self._end("timeout", "Time ran out. The story was never finished.")
 
     def _end_trip(self):
@@ -393,7 +427,9 @@ class Game:
             "fish_caught": self.fish_caught, "fish_deposited": self.fish_deposited,
             "fish_sacrificed": self.fish_sacrificed,
             "nakki_encounters": self.nakki_encounters, "iron_used": self.iron_used,
-            "boardings": self.boardings,
+            "boardings": self.boardings, "boarding_cost": self.boarding_cost,
+            "iron_price": self.price("iron"), "seita_relief": self.seita_relief,
+            "time_left": self.time_left,
             "bonuses_won": self.bonuses_won, "bonuses_lost": self.bonuses_lost,
             "ended": self.ended, "end_reason": self.end_reason,
         }

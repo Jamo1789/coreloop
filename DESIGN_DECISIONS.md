@@ -133,6 +133,39 @@ Tried first: deep food 0.30/min → deep-only collapsed the village (19%), shall
 Deep food 0.42/min, or factor 1.5 → deep dominated again.
 The real game's fish table would need the same split.
 
+### K. Deadline: the lake freezes (2026-11-09)
+Playtest feedback: the loop felt easy because every problem could be fixed with one more
+fishing trip. Nothing forced commitment. Now the story must be finished by `DEADLINE`
+(18 min of game time; time only passes outdoors, so it is an outdoor-time budget), or the run
+ends with the `deadline` ending (bad). `play.py` shows "ice in mm:ss" in the title and turns
+it red when the story left (x1.4 + 30 s) no longer fits. Bots switch to story-only at the
+same point (`DEADLINE_MARGIN` in `simulate.py`).
+Sweep, 1000 runs each, with L in place (good endings):
+
+  | Deadline | Aggressive | Cautious | Appeaser | Random (late) |
+  |----------|-----------:|---------:|---------:|--------------:|
+  | none     | 17%        | 12%      | 49%      | 16% (0%)      |
+  | 22 min   | 17%        | 12%      | 54%      | 14% (5%)      |
+  | 18 min   | 17%        | 12%      | 60%      | 7% (32%)      |
+  | 15 min   | 20%        | 20%      | 48%      | 1% (62%)      |
+
+The planned bots finish in 13–15 min, so 18 min barely touches them but cuts random play to 7%.
+A human taking time to fix things (24 min in the playtest) now runs out. The appeaser
+*gains* from the deadline: it stops dawdling into a collapse.
+
+### L. Rising costs (2026-11-09)
+Same feedback: the playtest earned 396 tokens, so 5 iron and 3 boardings cost nothing.
+- Iron: `price` + `step` per iron already bought (30, 45, 60, ...). `Game.price(item)`.
+- Boarding: `BOARDING_COST` + `BOARDING_COST_STEP` x boardings so far (30, 60, 90, ...).
+- Seita: each fish sacrifice removes `SEITA_DECAY` x the previous one (8, 6.4, 5.1, ...),
+  never under `SEITA_WRATH_MIN` (2). The Fat Pike offering is not affected.
+Sim: the price steps hardly move the bots (they hold 1–2 iron); they target players who
+stockpile. The Seita decay trims the dominant appeaser (77% → 60% at deadline 18, collapse
+11% → 27%, because it now spends more fish on wrath). Decay 0.85 / 0.9 / 1.0 gives the
+appeaser 64% / 67% / 70%.
+Still true: aggressive (17%) and cautious (12%) mostly end bad on wrath > 30. That is the
+strategy-balance problem, not something K or L caused.
+
 ### G. Fish farm: shelved
 A shop-built fish pool that feeds the village without touching the lake. Not
 implemented. It may come back if the restraint-based good ending tests well.
@@ -145,7 +178,9 @@ implemented. It may come back if the restraint-based good ending tests well.
   peak hunger 51–64%, so the 70% deposit gamble barely triggered). At 0.25 peak hunger reaches
   ~75% and collapse is rare; at 0.28 collapse hits ~25% of cautious/appeaser runs.
   Sensible range ~0.24–0.26.
-- Shop prices and `BOARDING_COST`. With iron the only purchase, tokens may pile up.
+- Shop prices, price steps and `BOARDING_COST` (+ step, see L). Bots still end with
+  50–120 unspent tokens.
+- `DEADLINE` (18 min, see K) and `SEITA_DECAY` (0.8, see L).
 - Story-item errand lengths and unlock stages (`STORY_ITEMS`).
 - Skill gap: random player vs best strategy. Track it with `python simulate.py`.
 - Good-ending wrath limit. At 30 (1000 runs per strategy, 2026-10-19):
